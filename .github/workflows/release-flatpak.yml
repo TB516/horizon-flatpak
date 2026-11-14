@@ -1,0 +1,71 @@
+name: Release Flatpak bundle
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-flatpak
+  cancel-in-progress: false
+
+env:
+  APP_ID: dev.playhorizon.Launcher
+
+jobs:
+  build:
+    name: Build x86_64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      options: --privileged
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Build Flatpak bundle
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: flatpak/${{ env.APP_ID }}.yml
+          arch: x86_64
+          branch: stable
+          bundle: ${{ env.APP_ID }}.flatpak
+          artifact-name: flatpak-bundle
+          build-dir: build-flatpak/build
+          repo-dir: build-flatpak/repo
+          state-dir: build-flatpak/builder-state
+          cache-key: flatpak-builder-x86_64-${{ hashFiles('flatpak/**') }}
+
+  release:
+    name: Publish GitHub release
+    needs: build
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Download bundle
+        uses: actions/download-artifact@v4
+        with:
+          name: flatpak-bundle
+          path: build-flatpak
+
+      # The newest AppStream release names the version, including packaging revisions like 0.2.64-1.
+      - name: Publish release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          version=$(grep -m1 -oP '<release version="\K[^"]+' "flatpak/$APP_ID.metainfo.xml")
+          bundle="build-flatpak/$APP_ID.flatpak"
+          if gh release view "$version" > /dev/null 2>&1; then
+            gh release upload "$version" "$bundle" --clobber
+          else
+            gh release create "$version" "$bundle" \
+              --target "$GITHUB_SHA" \
+              --title "Horizon $version" \
+              --notes "Horizon launcher $version: https://github.com/horizon-rust/horizon/releases/tag/launcher%40${version%%-*}"
+          fi

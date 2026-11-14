@@ -1,0 +1,54 @@
+app-id: dev.playhorizon.Launcher
+runtime: org.freedesktop.Platform
+runtime-version: '25.08'
+sdk: org.freedesktop.Sdk
+command: horizon-launcher
+default-branch: stable
+rename-desktop-file: horizon-launcher.desktop
+rename-icon: horizon
+
+finish-args:
+  - --share=network
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --socket=pulseaudio
+  - --device=dri
+  # /app is read-only, so Flatpak updates the launcher instead. The game versions it
+  # installs still download into the app's data folder.
+  - --env=HORIZON_LAUNCHER_NO_SELF_UPDATE=1
+
+modules:
+  - name: horizon-launcher
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 horizon-launcher /app/bin/horizon-launcher
+      - install -Dm644 horizon-launcher.desktop /app/share/applications/horizon-launcher.desktop
+      - install -Dm644 horizon.svg /app/share/icons/hicolor/scalable/apps/horizon.svg
+      - install -Dm644 dev.playhorizon.Launcher.metainfo.xml /app/share/metainfo/dev.playhorizon.Launcher.metainfo.xml
+    sources:
+      - type: archive
+        url: https://github.com/horizon-rust/horizon/releases/download/launcher%400.2.64/horizon-launcher-linux-x86_64.tar.gz
+        sha256: 23ce231eb13bf4203ea99076b540b93596c7df67005e5429ecbbaa25245bee67
+        strip-components: 0
+        x-checker-data:
+          type: json
+          # Launcher releases share the repository with nightly game builds.
+          url: https://api.github.com/repos/horizon-rust/horizon/releases
+          version-query: >-
+            first(.[] | select(.tag_name | startswith("launcher@"))) | .tag_name |
+            ltrimstr("launcher@")
+          url-query: >-
+            first(.[] | select(.tag_name | startswith("launcher@"))) | .assets[] |
+            select(.name == "horizon-launcher-linux-x86_64.tar.gz") | .browser_download_url
+          timestamp-query: >-
+            first(.[] | select(.tag_name | startswith("launcher@"))) | .published_at
+          is-main-source: true
+      - type: file
+        url: https://raw.githubusercontent.com/horizon-rust/horizon/f4d8d62c31ec2b08046faded7bef1b476783f319/packaging/linux/horizon-launcher.desktop
+        sha256: 436447e5ce86e144d744cf8f0e57aaeb2fe7f16e35cf62f4a3c7a56b0b0ddf31
+      - type: file
+        url: https://raw.githubusercontent.com/horizon-rust/horizon/f4d8d62c31ec2b08046faded7bef1b476783f319/packaging/icons/hicolor/scalable/apps/horizon.svg
+        sha256: 2a8c0871ae8a1fc4d3be47c8ce187ee5411d9553da241411ddd7e75c61373eb3
+      - type: file
+        path: dev.playhorizon.Launcher.metainfo.xml

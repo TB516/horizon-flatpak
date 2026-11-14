@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>dev.playhorizon.Launcher</id>
+  <name>Horizon</name>
+  <summary>Play Minecraft: Java Edition rewritten in Rust</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <description>
+    <p>Horizon is an unofficial rewrite of Minecraft: Java Edition 26.3 in Rust. This launcher installs, prepares and plays it. You need a Microsoft account that owns Java Edition.</p>
+    <p>This is an unofficial Flatpak of the Horizon launcher. Neither Horizon nor this package is approved by or associated with Mojang or Microsoft.</p>
+  </description>
+  <launchable type="desktop-id">dev.playhorizon.Launcher.desktop</launchable>
+  <url type="homepage">https://playhorizon.dev</url>
+  <url type="bugtracker">https://github.com/horizon-rust/horizon/issues</url>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.2.64" date="2026-11-14"/>
+  </releases>
+</component>
