@@ -9,22 +9,24 @@ Microsoft.
 
 ## Install
 
-Download `dev.playhorizon.Launcher.flatpak` from the
-[latest release](https://github.com/TB516/horizon-flatpak/releases/latest)
-and open it with your software store, or install it from a terminal:
+Install it with your software store using the
+[Horizon install link](https://horizon.thomasberrios.com/dev.playhorizon.Launcher.flatpakref),
+or from a terminal:
 
 ```sh
-flatpak install --user dev.playhorizon.Launcher.flatpak
+flatpak install --user https://horizon.thomasberrios.com/dev.playhorizon.Launcher.flatpakref
 ```
 
-Launch Horizon from your app menu or with `flatpak run dev.playhorizon.Launcher`.
-To update, install a newer release the same way.
+Accept the prompt to add the Horizon repository to receive updates through
+your software store or `flatpak update`. New launcher releases usually arrive
+within a day. Launch Horizon from your app menu or with
+`flatpak run dev.playhorizon.Launcher`.
 
 ## What it can access
 
 Horizon runs sandboxed. It can use the network, your display, graphics card
 and audio, but not your files. The launcher's own updater is turned off, so
-it only changes when you install a new release. The game versions it
+it only changes when Flatpak updates it. The game versions it
 installs, Minecraft's files, worlds and settings all live under
 `~/.var/app/dev.playhorizon.Launcher/`.
 
@@ -48,4 +50,6 @@ Without `--delete-data`, your worlds and downloads stay in
 `~/.var/app/dev.playhorizon.Launcher/`. The saved sign-in stays in your
 keyring until you remove it there.
 
-For local builds and updating the package, see [Building](docs/building.md).
+Maintainers can find update and release instructions in
+[Publishing](docs/publishing.md). For local builds, see
+[Building](docs/building.md).

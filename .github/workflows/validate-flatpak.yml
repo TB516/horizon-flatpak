@@ -1,0 +1,66 @@
+name: Validate Flatpak update
+
+on:
+  # Runs on every PR so the required check always reports. PRs without
+  # package changes skip the build, which still counts as passing.
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Check for package changes
+    runs-on: ubuntu-24.04
+    outputs:
+      # Manual runs always build.
+      package: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.package }}
+    steps:
+      - name: Check changed files
+        id: filter
+        if: github.event_name == 'pull_request'
+        uses: dorny/paths-filter@v4
+        with:
+          predicate-quantifier: some-with-excludes
+          filters: |
+            package:
+              - .github/workflows/validate-flatpak.yml
+              - .github/workflows/publish-flatpak.yml
+              - flatpak/**
+              - '!flatpak/pages/**'
+              - scripts/**
+
+  # The required check.
+  validate:
+    name: Validate
+    needs: changes
+    if: needs.changes.outputs.package == 'true'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    container:
+      image: ghcr.io/flathub-infra/flatpak-github-actions:freedesktop-25.08
+      # A volume seeded from the image keeps runtime updates off the read-only overlay
+      # layer, where they fail with "Invalid cross-device link" (flatpak-github-actions#267).
+      options: --privileged -v /var/lib/flatpak
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Build Flatpak and validate metadata
+        uses: flatpak/flatpak-github-actions/flatpak-builder@v6
+        with:
+          manifest-path: flatpak/dev.playhorizon.Launcher.yml
+          arch: x86_64
+          branch: stable
+          build-bundle: false
+          upload-artifact: false
+          build-dir: build-flatpak/validation-build
+          repo-dir: build-flatpak/validation-repo
+          state-dir: build-flatpak/builder-state
+          cache-key: flatpak-builder-x86_64-${{ hashFiles('flatpak/**', '!flatpak/pages/**') }}

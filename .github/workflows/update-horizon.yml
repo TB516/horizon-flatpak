@@ -1,0 +1,86 @@
+name: Check for Horizon releases
+
+on:
+  schedule:
+    - cron: '17 9 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: update-horizon
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v6
+
+      - name: Update the launcher release
+        uses: docker://ghcr.io/flathub/flatpak-external-data-checker:latest
+        # Authenticated API requests avoid the shared runner's anonymous rate limit.
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        with:
+          args: --edit-only --filter-type archive flatpak/dev.playhorizon.Launcher.yml
+
+      - name: Read updated release version
+        id: release
+        uses: mikefarah/yq@v4
+        with:
+          cmd: >-
+            yq -er '.modules[] | select(.name == "horizon-launcher") | .sources[] |
+            select(.type == "archive") | .url | split("/") | .[-2] |
+            sub("^launcher%40"; "")' flatpak/dev.playhorizon.Launcher.yml
+
+      - name: Check for an open pull request for this release
+        id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_BRANCH: automation/update-horizon-${{ steps.release.outputs.result }}
+        run: |
+          open_prs=$(gh pr list --head "$PR_BRANCH" --state open --json number --jq length)
+          if [[ "$open_prs" != 0 ]]; then
+            echo "open=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Create bot token
+        if: steps.existing.outputs.open != 'true'
+        id: bot
+        uses: actions/create-github-app-token@v3
+        with:
+          client-id: ${{ vars.BOT_CLIENT_ID }}
+          private-key: ${{ secrets.BOT_PRIVATE_KEY }}
+
+      # The bot opens the PR so Validate starts on its own, and its merge triggers publishing.
+      - name: Open update pull request
+        if: steps.existing.outputs.open != 'true'
+        id: pr
+        uses: peter-evans/create-pull-request@v8
+        with:
+          token: ${{ steps.bot.outputs.token }}
+          add-paths: |
+            flatpak/dev.playhorizon.Launcher.yml
+            flatpak/dev.playhorizon.Launcher.metainfo.xml
+          branch: automation/update-horizon-${{ steps.release.outputs.result }}
+          delete-branch: true
+          draft: false
+          # Notifies me of each update. Auto-merge doesn't wait for a review,
+          # so this only matters when Validate fails and the PR stays open.
+          reviewers: TB516
+          commit-message: 'chore(flatpak): update Horizon to ${{ steps.release.outputs.result }}'
+          title: 'chore(flatpak): update Horizon to ${{ steps.release.outputs.result }}'
+          body: |
+            Update the launcher tarball to [Horizon ${{ steps.release.outputs.result }}](https://github.com/horizon-rust/horizon/releases/tag/launcher%40${{ steps.release.outputs.result }}).
+
+            This PR merges itself once **Validate Flatpak update** passes. If validation fails, it stays open for review.
+
+      - name: Enable auto-merge
+        if: steps.pr.outputs.pull-request-number
+        env:
+          GH_TOKEN: ${{ steps.bot.outputs.token }}
+        run: gh pr merge --auto --squash "${{ steps.pr.outputs.pull-request-number }}"

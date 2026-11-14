@@ -1,0 +1,11 @@
+[Flatpak Ref]
+Title=Horizon
+Name=dev.playhorizon.Launcher
+Branch=stable
+Url=https://horizon.thomasberrios.com/repo/
+SuggestRemoteName=horizon
+Homepage=https://github.com/TB516/horizon-flatpak
+Icon=https://horizon.thomasberrios.com/icon.png
+RuntimeRepo=https://flathub.org/repo/flathub.flatpakrepo
+IsRuntime=false
+GPGKey=@GPG_KEY@
