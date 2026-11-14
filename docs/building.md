@@ -25,25 +25,3 @@ install for your user, then launch:
 
 The `run` command forwards additional arguments to the launcher. Build output
 and cache stay in `build-flatpak/`.
-
-## Updating Horizon
-
-The launcher source carries `x-checker-data` for Flatpak External Data
-Checker, which updates the URL and SHA-256 in the manifest and adds the
-release to the AppStream metadata:
-
-```sh
-podman run --rm -v "$PWD:/repo:z" -w /repo ghcr.io/flathub/flatpak-external-data-checker:latest \
-    --edit-only flatpak/dev.playhorizon.Launcher.yml
-```
-
-For packaging fixes without a new upstream release, add an AppStream release
-that appends a hyphen and package revision to the upstream version, such as
-`0.2.64-1`.
-
-## Releasing
-
-Run **Release Flatpak bundle** from the Actions tab after committing an
-update. It builds the bundle and attaches it to a GitHub release named after
-the newest version in the AppStream metadata, replacing the bundle if that
-release already exists.
