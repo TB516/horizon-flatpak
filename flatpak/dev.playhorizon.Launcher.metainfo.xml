@@ -14,9 +14,13 @@
   <url type="bugtracker">https://github.com/horizon-rust/horizon/issues</url>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="0.2.67" date="2026-11-15">
+      <url type="details">https://github.com/horizon-rust/horizon/releases/tag/launcher%400.2.67</url>
+      <description></description>
+    </release>
     <release version="0.2.66" date="2026-11-15">
       <url type="details">https://github.com/horizon-rust/horizon/releases/tag/launcher%400.2.66</url>
-      <description></description>
+      <description/>
     </release>
     <release version="0.2.64" date="2026-11-14"/>
   </releases>
