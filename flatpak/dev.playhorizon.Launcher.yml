@@ -28,8 +28,8 @@ modules:
       - install -Dm644 dev.playhorizon.Launcher.metainfo.xml /app/share/metainfo/dev.playhorizon.Launcher.metainfo.xml
     sources:
       - type: archive
-        url: https://github.com/horizon-rust/horizon/releases/download/launcher%400.2.81/horizon-launcher-linux-x86_64.tar.gz
-        sha256: 8e19854a2bcf2a5370a97c937c57b8d2e42dcc1d55adb608c11ae32f87d250ad
+        url: https://github.com/horizon-rust/horizon/releases/download/launcher%400.2.90/horizon-launcher-linux-x86_64.tar.gz
+        sha256: 4b539ab9856705f9f0f23a2097ab104cadd36752b158109e02188fa29f06dc54
         strip-components: 0
         x-checker-data:
           type: json
